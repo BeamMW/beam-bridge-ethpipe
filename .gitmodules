@@ -1,0 +1,4 @@
+[submodule "3rdparty/blake2-solidity"]
+	path = 3rdparty/blake2-solidity
+	url = https://github.com/BeamMW/blake2-solidity.git
+	branch = master
