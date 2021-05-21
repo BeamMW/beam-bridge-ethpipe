@@ -1,0 +1,23 @@
+{
+  "name": "eth_pipe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BeamMW/eth_pipe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BeamMW/eth_pipe/issues"
+  },
+  "homepage": "https://github.com/BeamMW/eth_pipe#readme",
+  "dependencies": {
+    "truffle": "^5.3.7"
+  }
+}
