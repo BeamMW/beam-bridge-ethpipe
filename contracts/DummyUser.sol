@@ -11,15 +11,15 @@ contract DummyUser {
     using SafeERC20 for IERC20;
     address m_beamToken;
 
-    event lockEvent(address sender, uint256 value);
+    event lockEvent(address sender, uint256 value, bytes pubKey);
 
     constructor(address beamToken) {
         m_beamToken = beamToken;
     }
 
-    function lock(uint256 value) public {
+    function lock(uint256 value, bytes memory pubKey) public {
         IERC20(m_beamToken).safeTransferFrom(msg.sender, address(this), value);
 
-        emit lockEvent(msg.sender, value);
+        emit lockEvent(msg.sender, value, pubKey);
     }
 }
