@@ -12,7 +12,8 @@ contract('Pipe', function(accounts) {
         beamToken = await BeamToken.new(supply);
         
         pipeContract = await Pipe.new();
-        userContract = await PipeUser.new(pipeContract.address, beamToken.address);
+        let beamContractReceiver = Buffer.from('30fb852e06679d6639418cded099687b9f935dfd8cca959a9a44741bfc877195', 'hex');
+        userContract = await PipeUser.new(pipeContract.address, beamToken.address, beamContractReceiver);
 
         await beamToken.transfer(userContract.address, supply);
     })

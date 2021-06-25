@@ -11,12 +11,15 @@ contract PipeUser {
     using SafeERC20 for IERC20;
     address m_pipeAddress;
     address m_beamToken;
+    bytes32 m_beamContractReceiver;
 
-    constructor(address pipeAddress, address beamToken) {
+    constructor(address pipeAddress, address beamToken, bytes32 beamContractReceiver) {
         m_pipeAddress = pipeAddress;
         m_beamToken = beamToken;
+        m_beamContractReceiver = beamContractReceiver;
     }
 
+    // unlock
     function proccessMessage(uint packageId, uint msgId) public {
         bytes memory value = Pipe(m_pipeAddress).getRemoteMessage(packageId, msgId);
 
@@ -33,9 +36,9 @@ contract PipeUser {
         IERC20(m_beamToken).safeTransfer(receiver, amount);
     }
 
-    function lock(address receiver, uint256 value) public {
+    function lock(uint256 value, bytes memory receiver) public {
         IERC20(m_beamToken).safeTransferFrom(msg.sender, address(this), value);
 
-        Pipe(m_pipeAddress).pushLocalMessage(receiver, value);
+        Pipe(m_pipeAddress).pushLocalMessage(m_beamContractReceiver, value, receiver);
     }
 }

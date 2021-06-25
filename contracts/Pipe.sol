@@ -33,22 +33,22 @@ contract Pipe {
         bool validated;
     }
 
-    // outgoing messages
-    struct LocalMessage {
-        // header:
-        // uint64 pckg_id;
-        // uint64 msg_id;
-        // address msg_sender; // eth contract address
-        // bytes32 msg_receiver; // beam contract id
-
-        // body
-        address receiver;
-        uint256 value;
-    }
-
     bytes32 m_remotePipeId;
     mapping (bytes32 => RemoteMessage) m_remoteMessages;
-    LocalMessage[] m_localMessages;
+    uint64 m_localMsgCounter;
+
+    // LocalMessage {
+    //     // header:
+    //     uint64 pckgId;
+    //     uint64 msgId;
+    //     address msgContractSender; // eth contract address
+    //     bytes32 msgContractReceiver; // beam contract id
+
+    //     // body
+    //     uint256 value;
+    //     bytes receiver; // beam pubKey - 33 bytes
+    // }
+    event NewLocalMessage(uint64 pckgId, uint64 msgId, address msgContractSender, bytes32 msgContractReceiver, uint256 value, bytes receiver);
 
     function setRemote(bytes32 remoteContractId)
         public
@@ -147,31 +147,10 @@ contract Pipe {
         return tmp.value;
     }
 
-    function pushLocalMessage(address receiver, uint256 value)
+    function pushLocalMessage(bytes32 contractReceiver, uint256 value, bytes memory receiver)
         public
     {
-        LocalMessage memory tmp;
-        tmp.receiver = receiver;
-        tmp.value = value;
-
-        m_localMessages.push(tmp);
-    }
-
-    function getLocalMessageToSend()
-        public
-        view
-        returns (address receiver, uint256 value)
-    {
-        require(m_localMessages.length > 0, "empty");
-        LocalMessage memory tmp = m_localMessages[0];
-
-        /*for (uint i = 0; i < m_localMessages.length - 1; i++) {
-            m_localMessages[i] = m_localMessages[i+1];
-        }
-
-        m_localMessages.pop();*/
-        
-        receiver = tmp.receiver;
-        value = tmp.value;
+        // TODO: pckgId
+        emit NewLocalMessage(0, ++m_localMsgCounter, msg.sender, contractReceiver, value, receiver);
     }
 }
