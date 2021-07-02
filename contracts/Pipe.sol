@@ -35,7 +35,7 @@ contract Pipe {
 
     bytes32 m_remotePipeId;
     mapping (bytes32 => RemoteMessage) m_remoteMessages;
-    uint64 m_localMsgCounter;
+    uint64 m_localPckgCounter;
 
     // LocalMessage {
     //     // header:
@@ -150,7 +150,7 @@ contract Pipe {
     function pushLocalMessage(bytes32 contractReceiver, uint256 value, bytes memory receiver)
         public
     {
-        // TODO: pckgId
-        emit NewLocalMessage(0, ++m_localMsgCounter, msg.sender, contractReceiver, value, receiver);
+        // TODO: msgId
+        emit NewLocalMessage(m_localPckgCounter++, 0, msg.sender, contractReceiver, value, receiver);
     }
 }
