@@ -11,12 +11,12 @@ contract PipeUser {
     using SafeERC20 for IERC20;
     address m_pipeAddress;
     address m_beamToken;
-    bytes32 m_beamContractReceiver;
+    bytes32 m_beamPipeUserCid;
 
-    constructor(address pipeAddress, address beamToken, bytes32 beamContractReceiver) {
+    constructor(address pipeAddress, address beamToken, bytes32 beamPipeUserCid) {
         m_pipeAddress = pipeAddress;
         m_beamToken = beamToken;
-        m_beamContractReceiver = beamContractReceiver;
+        m_beamPipeUserCid = beamPipeUserCid;
     }
 
     // unlock
@@ -36,9 +36,9 @@ contract PipeUser {
         IERC20(m_beamToken).safeTransfer(receiver, amount);
     }
 
-    function lock(uint256 value, bytes memory receiver) public {
+    function lock(uint64 value, bytes memory receiverBeamPubkey) public {
         IERC20(m_beamToken).safeTransferFrom(msg.sender, address(this), value);
 
-        Pipe(m_pipeAddress).pushLocalMessage(m_beamContractReceiver, value, receiver);
+        Pipe(m_pipeAddress).pushLocalMessage(m_beamPipeUserCid, abi.encodePacked(value, receiverBeamPubkey));
     }
 }
