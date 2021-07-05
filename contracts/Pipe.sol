@@ -35,11 +35,11 @@ contract Pipe {
 
     bytes32 m_remotePipeId;
     mapping (bytes32 => RemoteMessage) m_remoteMessages;
-    uint64 m_localPckgCounter;
+    uint32 m_localMsgCounter;
 
     // LocalMessage {
     //     // header:
-    //     uint64 pckgId;
+    //     uint32 msgId;
     //     address msgContractSender; // eth contract address
     //     bytes32 msgContractReceiver; // beam contract id
 
@@ -47,7 +47,7 @@ contract Pipe {
     //     uint64 value;
     //     bytes receiver; // beam pubKey - 33 bytes
     // }
-    event NewLocalMessage(uint64 pckgId, address msgContractSender, bytes32 msgContractReceiver, bytes msgBody);
+    event NewLocalMessage(uint32 msgId, address msgContractSender, bytes32 msgContractReceiver, bytes msgBody);
 
     function setRemote(bytes32 remoteContractId)
         public
@@ -149,7 +149,7 @@ contract Pipe {
     function pushLocalMessage(bytes32 contractReceiver, bytes memory msgBody)
         public
     {
-        // TODO: msgId
-        emit NewLocalMessage(m_localPckgCounter++, msg.sender, contractReceiver, msgBody);
+        // TODO: pckgId
+        emit NewLocalMessage(m_localMsgCounter++, msg.sender, contractReceiver, msgBody);
     }
 }
