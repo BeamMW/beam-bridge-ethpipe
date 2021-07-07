@@ -42,6 +42,6 @@ contract PipeUser {
     {
         IERC20(m_beamToken).safeTransferFrom(msg.sender, address(this), value);
 
-        Pipe(m_pipeAddress).pushLocalMessage(m_beamPipeUserCid, abi.encodePacked(value, receiverBeamPubkey));
+        Pipe(m_pipeAddress).pushLocalMessage(m_beamPipeUserCid, abi.encodePacked(receiverBeamPubkey, value));
     }
 }
