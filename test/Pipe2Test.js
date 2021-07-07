@@ -28,7 +28,7 @@ contract('Pipe2', function(accounts) {
     //     let value = 5000;
 
     //     await beamToken.approve(userA.address, value);
-    //     await userA.lock(receiver, value);
+    //     await userA.sendFunds(receiver, value);
 
     //     let msg = await pipeA.getLocalMessageToSend();
 
@@ -40,7 +40,7 @@ contract('Pipe2', function(accounts) {
 
     //     await pipeB.pushRemoteMessage(r, v);
     //     await pipeB.validateRemoteMessage(r);
-    //     await userB.proccessMessage(r);
+    //     await userB.receiveFunds(r);
 
     //     let receiverBalance = await beamToken.balanceOf(receiver);
 

@@ -43,7 +43,7 @@ contract('Pipe', function(accounts) {
         const proof = Buffer.from('00d564f54e02ac4582dd995868eb918de6a2e3badc192ccca1b9f3b68f860b499f01d6fc5e8c51473dc0aa40b9e449c03e1b6afc05e1c17f524753950ed688375637005acb50379e1c9d161f7fdce2cb9b249bb18d5d7d301bbd1b7f93ea8fdf72e3c70140bf46ccea80826c4f2882791853d1c8e34c628700bd4c6a20f8fda22c340ce500d74db77a03ec21cbe28ab53714704690e4d19af56c49e1859e1bafdb724f827401f83d50b04f31c064178adbea2716d9be0fa6085cc1b5f532c98f6a7286afefdc00431b05c9277165defb464e39578797e682561a0ac79a7af99b2978b072b6e912006e10b6764a9383098b77cb81a377347f53af480d496a0fb82c106050429021320185bae0173296d9309ac923563aded5ec2745596c5c27eb1a16d04621650710fc0016f45c229601000d1d807a69ed60251f262cee4c131bb17a6682a3a94c0028e80085698587c37dfa6c5ac381bd85082c74b85d9275ee6b2858205d7f5b9133b292', 'hex');
 
         await pipeContract.validateRemoteMessage(msgId, prevHash, chainWork, kernels, definition, height, timestamp, pow, rulesHash, proof);
-        await userContract.proccessMessage(msgId);
+        await userContract.receiveFunds(msgId);
 
         let receiverBalance = await beamToken.balanceOf(receiver);
 

@@ -20,8 +20,7 @@ contract PipeUser {
         m_beamPipeUserCid = beamPipeUserCid;
     }
 
-    // unlock
-    function proccessMessage(uint msgId)
+    function receiveFunds(uint msgId)
         public
     {
         bytes memory value = Pipe(m_pipeAddress).getRemoteMessage(msgId);
@@ -38,7 +37,7 @@ contract PipeUser {
         IERC20(m_beamToken).safeTransfer(receiver, amount);
     }
 
-    function lock(uint64 value, bytes memory receiverBeamPubkey)
+    function sendFunds(uint64 value, bytes memory receiverBeamPubkey)
         public
     {
         IERC20(m_beamToken).safeTransferFrom(msg.sender, address(this), value);
