@@ -13,30 +13,34 @@ contract PipeUser {
     address m_beamToken;
     bytes32 m_beamPipeUserCid;
 
-    constructor(address pipeAddress, address beamToken, bytes32 beamPipeUserCid) {
+    constructor(address pipeAddress, address beamToken, bytes32 beamPipeUserCid)
+    {
         m_pipeAddress = pipeAddress;
         m_beamToken = beamToken;
         m_beamPipeUserCid = beamPipeUserCid;
     }
 
     // unlock
-    function proccessMessage(uint packageId, uint msgId) public {
-        bytes memory value = Pipe(m_pipeAddress).getRemoteMessage(packageId, msgId);
+    function proccessMessage(uint msgId)
+        public
+    {
+        bytes memory value = Pipe(m_pipeAddress).getRemoteMessage(msgId);
 
-        // TODO: change
-        // parse msg: [address zero padded to 33bytes][uint64 value]
+        // parse msg: [address][uint64 value]
         address receiver;
         bytes8 tmp;
         assembly {
             receiver := shr(96, mload(add(value, 32)))
-            tmp := mload(add(value, 65))
+            tmp := mload(add(value, 52))
         }
         uint64 amount = BeamUtils.reverse64(uint64(tmp));
 
         IERC20(m_beamToken).safeTransfer(receiver, amount);
     }
 
-    function lock(uint64 value, bytes memory receiverBeamPubkey) public {
+    function lock(uint64 value, bytes memory receiverBeamPubkey)
+        public
+    {
         IERC20(m_beamToken).safeTransferFrom(msg.sender, address(this), value);
 
         Pipe(m_pipeAddress).pushLocalMessage(m_beamPipeUserCid, abi.encodePacked(value, receiverBeamPubkey));
