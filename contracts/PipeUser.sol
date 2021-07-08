@@ -44,4 +44,10 @@ contract PipeUser {
 
         Pipe(m_pipeAddress).pushLocalMessage(m_beamPipeUserCid, abi.encodePacked(receiverBeamPubkey, value));
     }
+
+    function setRemote(bytes32 remoteContractId)
+        public
+    {
+        m_beamPipeUserCid = remoteContractId;
+    }
 }
