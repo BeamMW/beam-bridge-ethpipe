@@ -52,4 +52,38 @@ contract('Pipe', function(accounts) {
         assert.equal(receiverBalance.toString(), 200, 'output mismatch');
     })
 
+    it('test validate', async() => {
+        let receiver = accounts[1];
+        let beamPipeContractId = Buffer.from('bd35a70a749cd0f63d1c059c30ffce82f18f4ee1b198b99f34b36f50ccff180a', 'hex');
+
+        let msgId = 5;
+        let msgContractSender = Buffer.from('a5b4c35d56ad440cf38f09a36aba293273563130b9cd4062dd110186189f85f3', 'hex');
+        let msgContractReceiver = '0xd8672a4a1bf37d36bef74e36edb4f17845e76f4e';
+        let messageBody = Buffer.from('000000000000000000000000000000000000000040420f0000000000', 'hex')
+
+        await pipeContract.setRemote(beamPipeContractId);
+
+        await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, messageBody);
+
+        const height = 7531;
+        const prevHash = Buffer.from('e17984dc3c179b4c41c37730132856c288b64c6c10d8fb45b1fcca22b6747b74', 'hex');
+        const chainWork = Buffer.from('000000000000000000000000000000000000000000001ec8573e100bad6b1700', 'hex');
+        const kernels = Buffer.from('c1aa9894244afdae13a5d42213b141bcb58ea42dc36ffa304163fa5db8e898d9', 'hex');
+        const definition = Buffer.from('42a8444fd774e0ce44d2eb4ee4dc027774056e650c9b9baab28fa5563d34204f', 'hex');
+        const timestamp = 1625833303;
+        const pow = Buffer.from('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003a36f165463f78c04e8c022d', 'hex');
+        const rulesHash = Buffer.from('340bbeabc390f481df1f84aedf0b679c1c7ed1f0e28d4340c9c49b4c41611f85', 'hex');
+
+        const proof = Buffer.from('0010e206dadf3045a4d36ed96a8059315710bb9ff708ddc6e0a955beea7cf6edab01b0933c2bac8d6578bc5832b216df0b641fbe1c30cddfb500b9d54d37c4051847016e83ce7df0ec22602a822a8951d3409dfcdee41c84880104f313b480a08e45a101584e92e0af5f911aafce7e0c622e5b83ecd57e33524f4c462f6de1645386175c01e8eb16e4d7811bd50f57a2b454efbfa8ee188486aa73386d772c89ff5846ea4b00b8ebd88dc3f1c13d6245034ef3c45398a3555249673fffff2c34901be6af6350002f49581d829a41bcf7f8623b152c10f22f50f62d51ca332702fb460521b235a0', 'hex');
+
+        await pipeContract.validateRemoteMessage(msgId, prevHash, chainWork, kernels, definition, height, timestamp, pow, rulesHash, proof);
+        /*await userContract.receiveFunds(msgId);
+
+        let receiverBalance = await beamToken.balanceOf(receiver);
+
+        console.log('balance = ', receiverBalance.toString());
+
+        assert.equal(receiverBalance.toString(), 200, 'output mismatch');*/
+    })
+
 })
