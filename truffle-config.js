@@ -37,10 +37,13 @@
        provider: () => new HDWalletProvider(process.env.MNEMONIC, 'http://localhost:8543/', 0, 5),
        network_id: '*'
      },
- 
      kovan: {
        provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://kovan.infura.io/v3/0eebb147933542d5baad89258096fdd1'),
        network_id: '42'
+     },
+     ropsten: {
+       provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://ropsten.infura.io/v3/' + process.env.INFURA_API_KEY),
+       network_id: '3'
      }
    },
  
@@ -62,5 +65,13 @@
          evmVersion: 'petersburg'
        }
      }
-   }
+   },
+
+   plugins: [
+    'truffle-plugin-verify'
+  ],
+
+  api_keys: {
+    etherscan: process.env.ETHERSCAN_API_KEY
+  }
  }
