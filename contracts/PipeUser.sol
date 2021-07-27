@@ -10,13 +10,13 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 contract PipeUser {
     using SafeERC20 for IERC20;
     address m_pipeAddress;
-    address m_beamToken;
+    address m_tokenAddress;
     bytes32 m_beamPipeUserCid;
 
-    constructor(address pipeAddress, address beamToken, bytes32 beamPipeUserCid)
+    constructor(address pipeAddress, address tokenAddress, bytes32 beamPipeUserCid)
     {
         m_pipeAddress = pipeAddress;
-        m_beamToken = beamToken;
+        m_tokenAddress = tokenAddress;
         m_beamPipeUserCid = beamPipeUserCid;
     }
 
@@ -34,13 +34,13 @@ contract PipeUser {
         }
         uint64 amount = BeamUtils.reverse64(uint64(tmp));
 
-        IERC20(m_beamToken).safeTransfer(receiver, amount);
+        IERC20(m_tokenAddress).safeTransfer(receiver, amount);
     }
 
     function sendFunds(uint64 value, bytes memory receiverBeamPubkey)
         public
     {
-        IERC20(m_beamToken).safeTransferFrom(msg.sender, address(this), value);
+        IERC20(m_tokenAddress).safeTransferFrom(msg.sender, address(this), value);
 
         Pipe(m_pipeAddress).pushLocalMessage(m_beamPipeUserCid, abi.encodePacked(receiverBeamPubkey, value));
     }

@@ -1,21 +1,21 @@
 const Pipe = artifacts.require('../contracts/Pipe.sol');
 const PipeUser = artifacts.require('../contracts/PipeUser.sol');
-const BeamToken = artifacts.require('../contracts/BeamToken.sol');
+const TestToken = artifacts.require('../contracts/TestToken.sol');
 
 contract('Pipe', function(accounts) {
-    let beamToken;
+    let testToken;
     let pipeContract;
     let userContract;
     let supply = BigInt(100000000000); // 1000 TEST coins
 
     beforeEach(async () => {
-        beamToken = await BeamToken.new(supply);
+        testToken = await TestToken.new(supply);
         
         pipeContract = await Pipe.new();
         let beamContractReceiver = Buffer.from('2427be2ac9e1b8dc1cb6b40949153818f7a8e8aeb49f453cf8e07d58e65b097b', 'hex');
-        userContract = await PipeUser.new(pipeContract.address, beamToken.address, beamContractReceiver);
+        userContract = await PipeUser.new(pipeContract.address, testToken.address, beamContractReceiver);
 
-        await beamToken.transfer(userContract.address, supply);
+        await testToken.transfer(userContract.address, supply);
     })
 
     it('stadard case', async() => {
@@ -45,7 +45,7 @@ contract('Pipe', function(accounts) {
         await pipeContract.validateRemoteMessage(msgId, prevHash, chainWork, kernels, definition, height, timestamp, pow, rulesHash, proof);
         await userContract.receiveFunds(msgId);
 
-        let receiverBalance = await beamToken.balanceOf(receiver);
+        let receiverBalance = await testToken.balanceOf(receiver);
 
         console.log('balance = ', receiverBalance.toString());
 
@@ -79,7 +79,7 @@ contract('Pipe', function(accounts) {
         await pipeContract.validateRemoteMessage(msgId, prevHash, chainWork, kernels, definition, height, timestamp, pow, rulesHash, proof);
         /*await userContract.receiveFunds(msgId);
 
-        let receiverBalance = await beamToken.balanceOf(receiver);
+        let receiverBalance = await testToken.balanceOf(receiver);
 
         console.log('balance = ', receiverBalance.toString());
 

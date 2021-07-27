@@ -1,9 +1,9 @@
 const Pipe = artifacts.require('../contracts/Pipe.sol');
 const PipeUser = artifacts.require('../contracts/PipeUser.sol');
-const BeamToken = artifacts.require('../contracts/BeamToken.sol');
+const TestToken = artifacts.require('../contracts/TestToken.sol');
 
 contract('Pipe2', function(accounts) {
-    let beamToken;
+    let testToken;
     let pipeA;
     let pipeB;
     let userA;
@@ -12,14 +12,14 @@ contract('Pipe2', function(accounts) {
     let toContract = BigInt(100000000000000000000); // 100 TEST coins
 
     beforeEach(async () => {
-        beamToken = await BeamToken.new(supply);
+        testToken = await TestToken.new(supply);
         
         pipeA = await Pipe.new();
         pipeB = await Pipe.new();
-        userA = await PipeUser.new(pipeA.address, beamToken.address);
-        userB = await PipeUser.new(pipeB.address, beamToken.address);
+        userA = await PipeUser.new(pipeA.address, testToken.address);
+        userB = await PipeUser.new(pipeB.address, testToken.address);
 
-        await beamToken.transfer(userB.address, toContract);
+        await testToken.transfer(userB.address, toContract);
     })
 
     // TODO: fix ?
@@ -27,7 +27,7 @@ contract('Pipe2', function(accounts) {
     //     let receiver = accounts[1];
     //     let value = 5000;
 
-    //     await beamToken.approve(userA.address, value);
+    //     await testToken.approve(userA.address, value);
     //     await userA.sendFunds(receiver, value);
 
     //     let msg = await pipeA.getLocalMessageToSend();
@@ -42,7 +42,7 @@ contract('Pipe2', function(accounts) {
     //     await pipeB.validateRemoteMessage(r);
     //     await userB.receiveFunds(r);
 
-    //     let receiverBalance = await beamToken.balanceOf(receiver);
+    //     let receiverBalance = await testToken.balanceOf(receiver);
 
     //     console.log('balance = ', receiverBalance.toString());
     // })
