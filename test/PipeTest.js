@@ -19,7 +19,7 @@ contract('Pipe', function(accounts) {
     })
 
     it('stadard case', async() => {
-        let receiver = accounts[1];
+        let receiver = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
         let beamPipeContractId = Buffer.from('bd35a70a749cd0f63d1c059c30ffce82f18f4ee1b198b99f34b36f50ccff180a', 'hex');
 
         let msgId = 3;
