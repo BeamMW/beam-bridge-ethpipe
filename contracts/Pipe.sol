@@ -18,6 +18,8 @@ contract Pipe {
 
     // incoming messages
     struct RemoteMessage {
+        // index in array m_remoteMsgsKeys
+        uint32 index;
         // header:
         uint32 msgId;
         // eth contract address 
@@ -32,6 +34,7 @@ contract Pipe {
 
     bytes32 m_remotePipeId;
     mapping (bytes32 => RemoteMessage) m_remoteMessages;
+    bytes32[] m_remoteMsgsKeys;
     uint32 m_localMsgCounter;
 
     // LocalMessage {
@@ -71,6 +74,9 @@ contract Pipe {
 
         require(m_remoteMessages[key].value.length == 0, "message is exist");
 
+        m_remoteMsgsKeys.push(key);
+
+        m_remoteMessages[key].index = uint32(m_remoteMsgsKeys.length - 1);
         m_remoteMessages[key].msgId = uint32(msgId);
         m_remoteMessages[key].msgContractReceiver = msgContractReceiver;
         m_remoteMessages[key].msgContractSender = msgContractSender;
@@ -138,10 +144,19 @@ contract Pipe {
     {
         bytes32 key = getMsgKey(msgId);
         require(m_remoteMessages[key].validated, "message should be validated");
+        // TODO: uncomment after testing
+        // require(msg.sender == m_remoteMessages[key].msgContractReceiver, "invalid msg receiver");
 
         RemoteMessage memory tmp = m_remoteMessages[key];
 
+        // delete from keys
+        if (tmp.index != m_remoteMsgsKeys.length - 1) {
+            bytes32 lastKey = m_remoteMsgsKeys[m_remoteMsgsKeys.length - 1];
+            m_remoteMsgsKeys[tmp.index] = lastKey;
+            m_remoteMessages[lastKey].index = tmp.index;
+        }
         delete m_remoteMessages[key];
+        m_remoteMsgsKeys.pop();
 
         return tmp.value;
     }
@@ -151,5 +166,29 @@ contract Pipe {
     {
         // TODO: pckgId
         emit NewLocalMessage(m_localMsgCounter++, msg.sender, contractReceiver, msgBody);
+    }
+
+    function getRemoteMsgByKey(bytes32 key)
+        public
+        view
+        returns (uint32, bytes32, bytes memory)
+    {
+        if (m_remoteMessages[key].value.length == 0  ||
+            m_remoteMessages[key].msgContractReceiver != msg.sender 
+            // TODO: uncomment after testing
+            /* ||
+            !m_remoteMessages[key].validated*/)
+        {
+            return (0, bytes32(0), new bytes(0));
+        }
+        return (m_remoteMessages[key].msgId, m_remoteMessages[key].msgContractSender, m_remoteMessages[key].value);
+    }
+
+    function getRemoteMsgKeys()
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        return m_remoteMsgsKeys;
     }
 }

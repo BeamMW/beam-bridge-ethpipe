@@ -20,19 +20,25 @@ contract PipeUser {
         m_beamPipeUserCid = beamPipeUserCid;
     }
 
-    function receiveFunds(uint msgId)
-        public
+    function parseRemoteMsgBody(bytes memory value)
+        private
+        pure
+        returns (address receiver, uint64 amount)
     {
-        bytes memory value = Pipe(m_pipeAddress).getRemoteMessage(msgId);
-
         // parse msg: [address][uint64 value]
-        address receiver;
         bytes8 tmp;
         assembly {
             receiver := shr(96, mload(add(value, 32)))
             tmp := mload(add(value, 52))
         }
-        uint64 amount = BeamUtils.reverse64(uint64(tmp));
+        amount = BeamUtils.reverse64(uint64(tmp));
+    }
+
+    function receiveFunds(uint msgId)
+        public
+    {
+        bytes memory value = Pipe(m_pipeAddress).getRemoteMessage(msgId);
+        (address receiver, uint64 amount) = parseRemoteMsgBody(value);
 
         IERC20(m_tokenAddress).safeTransfer(receiver, amount);
     }
@@ -49,5 +55,30 @@ contract PipeUser {
         public
     {
         m_beamPipeUserCid = remoteContractId;
+    }
+
+    function viewIncoming()
+        public
+        view
+        returns (uint32[] memory, uint64[] memory)
+    {
+        bytes32[] memory keys = Pipe(m_pipeAddress).getRemoteMsgKeys();
+        uint32[] memory msgIds = new uint32[](keys.length);
+        uint64[] memory amounts = new uint64[](keys.length);
+        uint j = 0;
+        for (uint i = 0; i < keys.length; i++) {
+            (uint32 msgId, bytes32 contractSender, bytes memory value) = Pipe(m_pipeAddress).getRemoteMsgByKey(keys[i]);
+            if (contractSender == "" || contractSender != m_beamPipeUserCid) {
+                continue;
+            }
+            
+            (address receiver, uint64 amount) = parseRemoteMsgBody(value);
+            if (msg.sender == receiver) {
+                msgIds[j] = msgId;
+                amounts[j++] = amount;
+            }
+        }
+
+        return (msgIds, amounts);
     }
 }

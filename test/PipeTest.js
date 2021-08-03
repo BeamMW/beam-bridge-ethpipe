@@ -7,12 +7,13 @@ contract('Pipe', function(accounts) {
     let pipeContract;
     let userContract;
     let supply = BigInt(100000000000); // 1000 TEST coins
+    let beamPipeUserContractId = Buffer.from('2427be2ac9e1b8dc1cb6b40949153818f7a8e8aeb49f453cf8e07d58e65b097b', 'hex');
 
     beforeEach(async () => {
         testToken = await TestToken.new(supply);
         
         pipeContract = await Pipe.new();
-        let beamContractReceiver = Buffer.from('2427be2ac9e1b8dc1cb6b40949153818f7a8e8aeb49f453cf8e07d58e65b097b', 'hex');
+        let beamContractReceiver = beamPipeUserContractId;
         userContract = await PipeUser.new(pipeContract.address, testToken.address, beamContractReceiver);
 
         await testToken.transfer(userContract.address, supply);
@@ -23,7 +24,7 @@ contract('Pipe', function(accounts) {
         let beamPipeContractId = Buffer.from('bd35a70a749cd0f63d1c059c30ffce82f18f4ee1b198b99f34b36f50ccff180a', 'hex');
 
         let msgId = 3;
-        let msgContractSender = Buffer.from('2427be2ac9e1b8dc1cb6b40949153818f7a8e8aeb49f453cf8e07d58e65b097b', 'hex');
+        let msgContractSender = beamPipeUserContractId;
         let msgContractReceiver = '0x51815CEbeF59b88DAfD1a5f24095eee1236ffCDd';
         let messageBody = Buffer.from('f17f52151ebef6c7334fad080c5704d77216b732c800000000000000', 'hex')
 
@@ -86,4 +87,33 @@ contract('Pipe', function(accounts) {
         assert.equal(receiverBalance.toString(), 200, 'output mismatch');*/
     })
 
+    it('test viewIncoming', async() => {
+        let receiver = accounts[0].toString().substring(2);
+
+        await pipeContract.setRemote(beamPipeUserContractId);
+
+        let msgId = 3;
+        let msgContractSender = beamPipeUserContractId;
+        let msgContractReceiver = userContract.address;
+        let messageBody = Buffer.from(receiver + 'c800000000000000', 'hex')
+
+        await pipeContract.pushRemoteMessage(msgId++, msgContractSender, msgContractReceiver, messageBody);
+
+        messageBody = Buffer.from(receiver + 'c810000000000000', 'hex')
+        await pipeContract.pushRemoteMessage(msgId++, msgContractSender, msgContractReceiver, messageBody);
+
+        messageBody = Buffer.from(receiver + 'c600000000000000', 'hex')
+        await pipeContract.pushRemoteMessage(msgId++, msgContractSender, msgContractReceiver, messageBody);
+
+        let res = await userContract.viewIncoming();
+
+        assert.equal(res[0].length, 3, 'unexpected array size');
+
+        let amounts = [200, 4296, 198];
+
+        for (let i = 0; i < res[0].length; i++) {
+            // console.log("viewIncoming: id = ", res[0][i].toString(), " amount = ", res[1][i].toString());
+            assert.equal(res[1][i].toString(), amounts[i], 'output mismatch');
+        }
+    })
 })
