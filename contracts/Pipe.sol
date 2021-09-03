@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.2;
 
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/utils/Address.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+
 import "./BeamHeader.sol";
 import "./BeamUtils.sol";
 
 contract Pipe {
+    using SafeERC20 for IERC20;
     // config:
-    // remote cfg:
-    // uint32 packageMaxMsgs;
-    // uint64 packageMaxDiffHeightToClose;
-    // local cfg:
-    // bytes32 rulesRemote; // ?
     // uint256 comissionPerMsg;
     // uint256 stakeForRemoteMsg;
     // uint64  disputePeriod;
@@ -18,24 +19,21 @@ contract Pipe {
 
     // incoming messages
     struct RemoteMessage {
+        bool finalized;
         // index in array m_remoteMsgsKeys
         uint32 index;
         // header:
         uint32 msgId;
-        // eth contract address 
-        address msgContractReceiver;
-        // beam contract id
-        bytes32 msgContractSender;
-
         // body
-        bytes value;
-        bool validated;
+        uint64 amount;
+        address receiver;
     }
 
-    bytes32 m_remotePipeId;
+    uint32 m_localMsgCounter;
+    address m_tokenAddress;
+    bytes32 m_remotePipeCid;
     mapping (bytes32 => RemoteMessage) m_remoteMessages;
     bytes32[] m_remoteMsgsKeys;
-    uint32 m_localMsgCounter;
 
     // LocalMessage {
     //     // header:
@@ -49,64 +47,37 @@ contract Pipe {
     // }
     event NewLocalMessage(uint32 msgId, address msgContractSender, bytes32 msgContractReceiver, bytes msgBody);
 
-    function setRemote(bytes32 remoteContractId)
+    constructor(address tokenAddress, bytes32 remotePipeCid)
+    {
+        m_tokenAddress = tokenAddress;
+        m_remotePipeCid = remotePipeCid;
+    }
+
+    // TODO: remove after testing
+    function setRemote(bytes32 remotePipeCid)
         public
     {
-        m_remotePipeId = remoteContractId;
+        m_remotePipeCid = remotePipeCid;
     }
 
-    function getMsgKey(uint msgId)
-        private
-        pure
-        returns (bytes32 key)
-    {
-        key = keccak256(abi.encodePacked(uint32(msgId)));
-    }
-
-    // TODO: add support multiple msgs
     function pushRemoteMessage(uint msgId,
                                bytes32 msgContractSender,       // beam contract id
                                address msgContractReceiver,     // eth contract address
                                bytes memory messageBody)
         public
     {
-        bytes32 key = getMsgKey(msgId);
+        bytes32 key = getRemoteMsgKey(msgId);
 
-        require(m_remoteMessages[key].value.length == 0, "message is exist");
+        require(m_remoteMessages[key].receiver == address(0), "message is exist");
+        require(msgContractSender == m_remotePipeCid, "unsupported sender of the message");
+        require(msgContractReceiver == address(this), "invalid receiver of the message");
 
         m_remoteMsgsKeys.push(key);
 
         m_remoteMessages[key].index = uint32(m_remoteMsgsKeys.length - 1);
         m_remoteMessages[key].msgId = uint32(msgId);
-        m_remoteMessages[key].msgContractReceiver = msgContractReceiver;
-        m_remoteMessages[key].msgContractSender = msgContractSender;
-        m_remoteMessages[key].value = messageBody;
-        m_remoteMessages[key].validated = false;
-    }
-
-    function getBeamVariableKey(uint msgId)
-        private
-        view
-        returns (bytes memory)
-    {
-        // [contract_id,KeyTag::Internal(uint8 0),KeyType::OutCheckpoint(uint8 2),index_BE(uint32 'packageId')]
-        return abi.encodePacked(m_remotePipeId, uint8(0), uint8(2), uint32(msgId));
-    }
-
-    function getMsgHash(bytes32 previousHash, RemoteMessage memory message)
-        private
-        pure
-        returns (bytes32)
-    {
-        return sha256(abi.encodePacked("b.msg\x00",
-                      previousHash,
-                      // full msg size
-                      BeamUtils.encodeUint(20 + message.msgContractSender.length + message.value.length),
-                      // msgHdr: sender/receiver
-                      message.msgContractSender,
-                      message.msgContractReceiver,
-                      // msg body
-                      message.value));
+        (m_remoteMessages[key].receiver, m_remoteMessages[key].amount) = parseRemoteMsgBody(messageBody);
+        m_remoteMessages[key].finalized = false;
     }
 
     function validateRemoteMessage(uint msgId, 
@@ -122,30 +93,37 @@ contract Pipe {
                                    bytes memory proof)
         public
     {
-        bytes32 key = getMsgKey(msgId);
-        require(!m_remoteMessages[key].validated, "already verified.");
+        bytes32 key = getRemoteMsgKey(msgId);
+        require(!m_remoteMessages[key].finalized, "already finalized.");
         
         // validate block header & proof of msg
         // TODO: uncomment when stop using FakePow
         // require(BeamHeader.isValid(prev, chainWork, kernels, definition, height, timestamp, pow, rulesHash), 'invalid header.');
 
         bytes memory variableKey = getBeamVariableKey(msgId);
-        bytes memory ecodedMsg = abi.encodePacked(m_remoteMessages[key].msgContractSender, m_remoteMessages[key].msgContractReceiver, m_remoteMessages[key].value);
+        bytes memory ecodedMsg = abi.encodePacked(m_remotePipeCid, address(this), m_remoteMessages[key].receiver, m_remoteMessages[key].amount);
         bytes32 variableHash = BeamUtils.getContractVariableHash(variableKey, ecodedMsg);
         bytes32 rootHash = BeamUtils.interpretMerkleProof(variableHash, proof);
 
         require(rootHash == definition, "invalid proof");
-        m_remoteMessages[key].validated = true;
+        m_remoteMessages[key].finalized = true;
     }
 
-    function getRemoteMessage(uint msgId)
+    function finalyzeRemoteMessage(uint msgId)
         public
-        returns (bytes memory)
     {
-        bytes32 key = getMsgKey(msgId);
-        require(m_remoteMessages[key].validated, "message should be validated");
-        // TODO: uncomment after testing
-        // require(msg.sender == m_remoteMessages[key].msgContractReceiver, "invalid msg receiver");
+        // TODO: dispute or time
+
+        bytes32 key = getRemoteMsgKey(msgId);
+        require(!m_remoteMessages[key].finalized, "already finalized.");
+        m_remoteMessages[key].finalized = true;
+    }
+
+    function receiveFunds(uint msgId)
+        public
+    {
+        bytes32 key = getRemoteMsgKey(msgId);
+        require(m_remoteMessages[key].finalized, "message should be finalized");
 
         RemoteMessage memory tmp = m_remoteMessages[key];
 
@@ -158,37 +136,66 @@ contract Pipe {
         delete m_remoteMessages[key];
         m_remoteMsgsKeys.pop();
 
-        return tmp.value;
+        IERC20(m_tokenAddress).safeTransfer(tmp.receiver, tmp.amount);
     }
 
-    function pushLocalMessage(bytes32 contractReceiver, bytes memory msgBody)
+    function sendFunds(uint64 value, bytes memory receiverBeamPubkey)
         public
     {
-        // TODO: pckgId
-        emit NewLocalMessage(m_localMsgCounter++, msg.sender, contractReceiver, msgBody);
+        IERC20(m_tokenAddress).safeTransferFrom(msg.sender, address(this), value);
+
+        emit NewLocalMessage(m_localMsgCounter++, address(this), m_remotePipeCid, abi.encodePacked(receiverBeamPubkey, value));
     }
 
-    function getRemoteMsgByKey(bytes32 key)
+    function viewIncoming()
         public
         view
-        returns (uint32, bytes32, bytes memory)
+        returns (uint32[] memory, uint64[] memory)
     {
-        if (m_remoteMessages[key].value.length == 0  ||
-            m_remoteMessages[key].msgContractReceiver != msg.sender 
-            // TODO: uncomment after testing
-            /* ||
-            !m_remoteMessages[key].validated*/)
-        {
-            return (0, bytes32(0), new bytes(0));
+        uint32[] memory msgIds = new uint32[](m_remoteMsgsKeys.length);
+        uint64[] memory amounts = new uint64[](m_remoteMsgsKeys.length);
+        uint j = 0;
+        for (uint i = 0; i < m_remoteMsgsKeys.length; i++) {
+            RemoteMessage memory tmp = m_remoteMessages[m_remoteMsgsKeys[i]];
+
+            if (tmp.receiver != address(0) && tmp.finalized && msg.sender == tmp.receiver) {
+                msgIds[j] = tmp.msgId;
+                amounts[j++] = tmp.amount;
+            }
         }
-        return (m_remoteMessages[key].msgId, m_remoteMessages[key].msgContractSender, m_remoteMessages[key].value);
+
+        return (msgIds, amounts);
     }
 
-    function getRemoteMsgKeys()
-        public
-        view
-        returns (bytes32[] memory)
+    function getRemoteMsgKey(uint msgId)
+        private
+        pure
+        returns (bytes32 key)
     {
-        return m_remoteMsgsKeys;
+        key = keccak256(abi.encodePacked(uint32(msgId)));
     }
+
+    function parseRemoteMsgBody(bytes memory value)
+        private
+        pure
+        returns (address receiver, uint64 amount)
+    {
+        require(value.length == 28, "unexpected size of the MsgBody.");
+        // parse msg: [address][uint64 value]
+        bytes8 tmp;
+        assembly {
+            receiver := shr(96, mload(add(value, 32)))
+            tmp := mload(add(value, 52))
+        }
+        amount = BeamUtils.reverse64(uint64(tmp));
+    }
+
+    function getBeamVariableKey(uint msgId)
+        private
+        view
+        returns (bytes memory)
+    {
+        // [contract_id,KeyTag::Internal(uint8 0),KeyType::OutCheckpoint(uint8 2),index_BE(uint32 'packageId')]
+        return abi.encodePacked(m_remotePipeCid, uint8(0), uint8(2), uint32(msgId));
+    }   
 }

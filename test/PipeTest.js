@@ -1,22 +1,18 @@
 const Pipe = artifacts.require('../contracts/Pipe.sol');
-const PipeUser = artifacts.require('../contracts/PipeUser.sol');
 const TestToken = artifacts.require('../contracts/TestToken.sol');
 
 contract('Pipe', function(accounts) {
     let testToken;
     let pipeContract;
-    let userContract;
+
     let supply = BigInt(100000000000); // 1000 TEST coins
-    let beamPipeUserContractId = Buffer.from('2427be2ac9e1b8dc1cb6b40949153818f7a8e8aeb49f453cf8e07d58e65b097b', 'hex');
+    let beamPipeContractId = Buffer.from('2427be2ac9e1b8dc1cb6b40949153818f7a8e8aeb49f453cf8e07d58e65b097b', 'hex');
 
     beforeEach(async () => {
         testToken = await TestToken.new(supply);
-        
-        pipeContract = await Pipe.new();
-        let beamContractReceiver = beamPipeUserContractId;
-        userContract = await PipeUser.new(pipeContract.address, testToken.address, beamContractReceiver);
+        pipeContract = await Pipe.new(testToken.address, beamPipeContractId);
 
-        await testToken.transfer(userContract.address, supply);
+        await testToken.transfer(pipeContract.address, supply);
     })
 
     it('stadard case', async() => {
@@ -24,7 +20,7 @@ contract('Pipe', function(accounts) {
         let beamPipeContractId = Buffer.from('bd35a70a749cd0f63d1c059c30ffce82f18f4ee1b198b99f34b36f50ccff180a', 'hex');
 
         let msgId = 3;
-        let msgContractSender = beamPipeUserContractId;
+        let msgContractSender = beamPipeContractId;
         let msgContractReceiver = '0x51815CEbeF59b88DAfD1a5f24095eee1236ffCDd';
         let messageBody = Buffer.from('f17f52151ebef6c7334fad080c5704d77216b732c800000000000000', 'hex')
 
@@ -44,7 +40,7 @@ contract('Pipe', function(accounts) {
         const proof = Buffer.from('00d564f54e02ac4582dd995868eb918de6a2e3badc192ccca1b9f3b68f860b499f01d6fc5e8c51473dc0aa40b9e449c03e1b6afc05e1c17f524753950ed688375637005acb50379e1c9d161f7fdce2cb9b249bb18d5d7d301bbd1b7f93ea8fdf72e3c70140bf46ccea80826c4f2882791853d1c8e34c628700bd4c6a20f8fda22c340ce500d74db77a03ec21cbe28ab53714704690e4d19af56c49e1859e1bafdb724f827401f83d50b04f31c064178adbea2716d9be0fa6085cc1b5f532c98f6a7286afefdc00431b05c9277165defb464e39578797e682561a0ac79a7af99b2978b072b6e912006e10b6764a9383098b77cb81a377347f53af480d496a0fb82c106050429021320185bae0173296d9309ac923563aded5ec2745596c5c27eb1a16d04621650710fc0016f45c229601000d1d807a69ed60251f262cee4c131bb17a6682a3a94c0028e80085698587c37dfa6c5ac381bd85082c74b85d9275ee6b2858205d7f5b9133b292', 'hex');
 
         await pipeContract.validateRemoteMessage(msgId, prevHash, chainWork, kernels, definition, height, timestamp, pow, rulesHash, proof);
-        await userContract.receiveFunds(msgId);
+        await pipeContract.receiveFunds(msgId);
 
         let receiverBalance = await testToken.balanceOf(receiver);
 
@@ -78,7 +74,7 @@ contract('Pipe', function(accounts) {
         const proof = Buffer.from('0010e206dadf3045a4d36ed96a8059315710bb9ff708ddc6e0a955beea7cf6edab01b0933c2bac8d6578bc5832b216df0b641fbe1c30cddfb500b9d54d37c4051847016e83ce7df0ec22602a822a8951d3409dfcdee41c84880104f313b480a08e45a101584e92e0af5f911aafce7e0c622e5b83ecd57e33524f4c462f6de1645386175c01e8eb16e4d7811bd50f57a2b454efbfa8ee188486aa73386d772c89ff5846ea4b00b8ebd88dc3f1c13d6245034ef3c45398a3555249673fffff2c34901be6af6350002f49581d829a41bcf7f8623b152c10f22f50f62d51ca332702fb460521b235a0', 'hex');
 
         await pipeContract.validateRemoteMessage(msgId, prevHash, chainWork, kernels, definition, height, timestamp, pow, rulesHash, proof);
-        /*await userContract.receiveFunds(msgId);
+        /*await pipeContract.receiveFunds(msgId);
 
         let receiverBalance = await testToken.balanceOf(receiver);
 
@@ -90,29 +86,34 @@ contract('Pipe', function(accounts) {
     it('test viewIncoming', async() => {
         let receiver = accounts[0].toString().substring(2);
 
-        await pipeContract.setRemote(beamPipeUserContractId);
+        await pipeContract.setRemote(beamPipeContractId);
 
-        let msgId = 3;
-        let msgContractSender = beamPipeUserContractId;
-        let msgContractReceiver = userContract.address;
+        let msgId = 0;
+        let msgContractSender = beamPipeContractId;
+        let msgContractReceiver = pipeContract.address;
         let messageBody = Buffer.from(receiver + 'c800000000000000', 'hex')
 
-        await pipeContract.pushRemoteMessage(msgId++, msgContractSender, msgContractReceiver, messageBody);
+        await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, messageBody);
+        await pipeContract.finalyzeRemoteMessage(msgId);
+        msgId++;
 
         messageBody = Buffer.from(receiver + 'c810000000000000', 'hex')
-        await pipeContract.pushRemoteMessage(msgId++, msgContractSender, msgContractReceiver, messageBody);
+        await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, messageBody);
+        await pipeContract.finalyzeRemoteMessage(msgId);
+        msgId++;
 
         messageBody = Buffer.from(receiver + 'c600000000000000', 'hex')
-        await pipeContract.pushRemoteMessage(msgId++, msgContractSender, msgContractReceiver, messageBody);
+        await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, messageBody);
+        await pipeContract.finalyzeRemoteMessage(msgId);
 
-        let res = await userContract.viewIncoming();
+        let res = await pipeContract.viewIncoming();
 
-        assert.equal(res[0].length, 3, 'unexpected array size');
+        assert.equal(res[0].length, msgId + 1, 'unexpected array size');
 
         let amounts = [200, 4296, 198];
 
         for (let i = 0; i < res[0].length; i++) {
-            // console.log("viewIncoming: id = ", res[0][i].toString(), " amount = ", res[1][i].toString());
+            //console.log("viewIncoming: id = ", res[0][i].toString(), " amount = ", res[1][i].toString());
             assert.equal(res[1][i].toString(), amounts[i], 'output mismatch');
         }
     })
