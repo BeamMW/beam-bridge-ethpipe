@@ -47,6 +47,8 @@ library BeamUtils {
                 secondHash := mload(add(add(proof, 33), index))
             }
 
+            require(proof[index] < 0x02, "MerklePathItem direction should be 0 or 1");
+
             if (proof[index] != 0x01) {
                 rootHash = sha256(abi.encodePacked(secondHash, rootHash));
             }
