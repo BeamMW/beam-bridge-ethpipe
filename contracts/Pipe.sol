@@ -24,6 +24,9 @@ contract Pipe {
         uint32 index;
         // header:
         uint32 msgId;
+        // TODO: hash?
+        uint64 height;
+        uint64 timestamp;
         // body
         uint64 amount;
         address receiver;
@@ -45,7 +48,7 @@ contract Pipe {
     //     uint64 value;
     //     bytes receiver; // beam pubKey - 33 bytes
     // }
-    event NewLocalMessage(uint32 msgId, address msgContractSender, bytes32 msgContractReceiver, bytes msgBody);
+    event NewLocalMessage(uint32 msgId, address msgContractSender, bytes32 msgContractReceiver, uint64 amount, bytes receiver);
 
     constructor(address tokenAddress, bytes32 remotePipeCid)
     {
@@ -63,7 +66,10 @@ contract Pipe {
     function pushRemoteMessage(uint msgId,
                                bytes32 msgContractSender,       // beam contract id
                                address msgContractReceiver,     // eth contract address
-                               bytes memory messageBody)
+                               uint64 height,
+                               uint64 timestamp,
+                               uint64 amount,
+                               address receiver)
         public
     {
         bytes32 key = getRemoteMsgKey(msgId);
@@ -76,7 +82,10 @@ contract Pipe {
 
         m_remoteMessages[key].index = uint32(m_remoteMsgsKeys.length - 1);
         m_remoteMessages[key].msgId = uint32(msgId);
-        (m_remoteMessages[key].receiver, m_remoteMessages[key].amount) = parseRemoteMsgBody(messageBody);
+        m_remoteMessages[key].height = height;
+        m_remoteMessages[key].timestamp = timestamp;
+        m_remoteMessages[key].receiver = receiver;
+        m_remoteMessages[key].amount = amount;
         m_remoteMessages[key].finalized = false;
     }
 
@@ -142,9 +151,11 @@ contract Pipe {
     function sendFunds(uint64 value, bytes memory receiverBeamPubkey)
         public
     {
+        require(receiverBeamPubkey.length == 33, "unexpected size of the receiverBeamPubkey.");
+
         IERC20(m_tokenAddress).safeTransferFrom(msg.sender, address(this), value);
 
-        emit NewLocalMessage(m_localMsgCounter++, address(this), m_remotePipeCid, abi.encodePacked(receiverBeamPubkey, value));
+        emit NewLocalMessage(m_localMsgCounter++, address(this), m_remotePipeCid, value, receiverBeamPubkey);
     }
 
     function viewIncoming()
@@ -152,6 +163,7 @@ contract Pipe {
         view
         returns (uint32[] memory, uint64[] memory)
     {
+        // TODO:
         uint32[] memory msgIds = new uint32[](m_remoteMsgsKeys.length);
         uint64[] memory amounts = new uint64[](m_remoteMsgsKeys.length);
         uint j = 0;
@@ -173,21 +185,6 @@ contract Pipe {
         returns (bytes32 key)
     {
         key = keccak256(abi.encodePacked(uint32(msgId)));
-    }
-
-    function parseRemoteMsgBody(bytes memory value)
-        private
-        pure
-        returns (address receiver, uint64 amount)
-    {
-        require(value.length == 28, "unexpected size of the MsgBody.");
-        // parse msg: [address][uint64 value]
-        bytes8 tmp;
-        assembly {
-            receiver := shr(96, mload(add(value, 32)))
-            tmp := mload(add(value, 52))
-        }
-        amount = BeamUtils.reverse64(uint64(tmp));
     }
 
     function getBeamVariableKey(uint msgId)

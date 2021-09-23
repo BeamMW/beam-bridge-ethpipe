@@ -84,36 +84,27 @@ contract('Pipe', function(accounts) {
     })
 
     it('test viewIncoming', async() => {
-        let receiver = accounts[0].toString().substring(2);
+        let receiver = accounts[0];
 
         await pipeContract.setRemote(beamPipeContractId);
 
-        let msgId = 0;
+        let amounts = [200, 4296, 198];
         let msgContractSender = beamPipeContractId;
         let msgContractReceiver = pipeContract.address;
-        let messageBody = Buffer.from(receiver + 'c800000000000000', 'hex')
+        let msgBlockHeight = 7531;
+        let msgBlockTimestamp = 1625833303;
 
-        await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, messageBody);
-        await pipeContract.finalyzeRemoteMessage(msgId);
-        msgId++;
-
-        messageBody = Buffer.from(receiver + 'c810000000000000', 'hex')
-        await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, messageBody);
-        await pipeContract.finalyzeRemoteMessage(msgId);
-        msgId++;
-
-        messageBody = Buffer.from(receiver + 'c600000000000000', 'hex')
-        await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, messageBody);
-        await pipeContract.finalyzeRemoteMessage(msgId);
+        for (let msgId = 0; msgId < amounts.length; msgId++) {
+            await pipeContract.pushRemoteMessage(msgId, msgContractSender, msgContractReceiver, msgBlockHeight, msgBlockTimestamp, amounts[msgId], receiver);
+            await pipeContract.finalyzeRemoteMessage(msgId);
+        }
 
         let res = await pipeContract.viewIncoming();
 
-        assert.equal(res[0].length, msgId + 1, 'unexpected array size');
-
-        let amounts = [200, 4296, 198];
+        assert.equal(res[0].length, amounts.length, 'unexpected array size');
 
         for (let i = 0; i < res[0].length; i++) {
-            //console.log("viewIncoming: id = ", res[0][i].toString(), " amount = ", res[1][i].toString());
+            console.log("viewIncoming: id = ", res[0][i].toString(), " amount = ", res[1][i].toString());
             assert.equal(res[1][i].toString(), amounts[i], 'output mismatch');
         }
     })
