@@ -14,6 +14,8 @@ contract Pipe {
     address m_tokenAddress;
     address m_relayerAddress;
 
+    mapping (uint64 => bool) m_processedRemoteMsgs;
+
     // LocalMessage {
     //     // header:
     //     uint32 msgId;
@@ -23,7 +25,7 @@ contract Pipe {
     //     uint64 amount;
     //     bytes receiver; // beam pubKey - 33 bytes
     // }
-    event NewLocalMessage(uint32 msgId, uint64 amount, uint64 relayerFee, bytes receiver);
+    event NewLocalMessage(uint64 msgId, uint64 amount, uint64 relayerFee, bytes receiver);
 
     constructor(address tokenAddress, address relayerAddress)
     {
@@ -38,10 +40,12 @@ contract Pipe {
         // TODO: mb add event
     }
 
-    function processRemoteMessage(uint msgId, uint64 relayerFee, uint64 amount, address receiver)
+    function processRemoteMessage(uint64 msgId, uint64 relayerFee, uint64 amount, address receiver)
         public
     {
         require(msg.sender == m_relayerAddress, "Invalid msg sender.");
+        require(!m_processedRemoteMsgs[msgId], "Msg already processed.");
+        m_processedRemoteMsgs[msgId] = true;
 
         IERC20(m_tokenAddress).safeTransfer(m_relayerAddress, relayerFee);
         IERC20(m_tokenAddress).safeTransfer(receiver, amount);
