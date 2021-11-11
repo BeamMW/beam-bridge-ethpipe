@@ -74,9 +74,10 @@ contract('Pipe', function(accounts) {
 
         try {
             await pipeContract.processRemoteMessage(msgId, relayerFee, amount, receiver);
+
+            assert(false, 'should be exception');
         }
         catch (error) {
-            assert(error.message.indexOf('Invalid msg sender.') >= 0);
         }
 
         await pipeContract.processRemoteMessage(msgId, relayerFee, amount, receiver, {from: relayerAddress, value: 0});
@@ -95,9 +96,10 @@ contract('Pipe', function(accounts) {
 
         try {
             await pipeContract.processRemoteMessage(msgId, relayerFee, amount, receiver, {from: relayerAddress, value: 0});
+
+            assert(false, 'should be exception');
         }
         catch (error) {
-            assert(error.message.indexOf('Msg already processed.') >= 0);
         }
     })
 })

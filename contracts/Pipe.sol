@@ -33,6 +33,7 @@ contract Pipe {
         m_relayerAddress = relayerAddress;
     }
 
+    // only for test. delete it!!!
     function setRelayer(address relayerAddress)
         public
     {
