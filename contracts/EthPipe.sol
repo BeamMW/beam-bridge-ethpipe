@@ -43,10 +43,10 @@ contract EthPipe {
         require(!m_processedRemoteMsgs[msgId], "Msg already processed.");
         m_processedRemoteMsgs[msgId] = true;
 
-        (bool success, ) = payable(m_relayerAddress).call{value: relayerFee}("");
+        (bool success, ) = payable(m_relayerAddress).call{value: relayerFee * 10 gwei}("");
         require(success, "Transfer failed.");
 
-        (success, ) = payable(receiver).call{value: amount}("");
+        (success, ) = payable(receiver).call{value: amount * 10 gwei}("");
         require(success, "Transfer failed.");
     }
 
@@ -55,8 +55,8 @@ contract EthPipe {
         payable
     {
         require(receiverBeamPubkey.length == 33, "unexpected size of the receiverBeamPubkey.");
-        uint total = value + relayerFee;
-        require(msg.value == total);
+        uint total = (value + relayerFee) * 10 gwei;
+        require(msg.value == total, "Invalid sent fund");
 
         emit NewLocalMessage(m_localMsgCounter++, value, relayerFee, receiverBeamPubkey);
     }  
