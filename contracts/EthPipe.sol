@@ -7,21 +7,21 @@ import "openzeppelin-solidity/contracts/utils/Address.sol";
 contract EthPipe {
     using SafeMath for uint;
 
-    uint32 m_localMsgCounter;
+    uint64 m_localMsgCounter;
     address m_relayerAddress;
 
     mapping (uint64 => bool) m_processedRemoteMsgs;
 
     // LocalMessage {
     //     // header:
-    //     uint32 msgId;
-    //     uint64 relayerFee;
+    //     uint64 msgId;
+    //     uint relayerFee;
 
     //     // msg body
-    //     uint64 amount;
+    //     uint amount;
     //     bytes receiver; // beam pubKey - 33 bytes
     // }
-    event NewLocalMessage(uint64 msgId, uint64 amount, uint64 relayerFee, bytes receiver);
+    event NewLocalMessage(uint64 msgId, uint amount, uint relayerFee, bytes receiver);
 
     constructor(address relayerAddress)
     {
@@ -36,26 +36,26 @@ contract EthPipe {
         // TODO: mb add event
     }
 
-    function processRemoteMessage(uint64 msgId, uint64 relayerFee, uint64 amount, address receiver)
+    function processRemoteMessage(uint64 msgId, uint relayerFee, uint amount, address receiver)
         public
     {
         require(msg.sender == m_relayerAddress, "Invalid msg sender.");
         require(!m_processedRemoteMsgs[msgId], "Msg already processed.");
         m_processedRemoteMsgs[msgId] = true;
 
-        (bool success, ) = payable(m_relayerAddress).call{value: relayerFee * 10 gwei}("");
+        (bool success, ) = payable(m_relayerAddress).call{value: relayerFee}("");
         require(success, "Transfer failed.");
 
-        (success, ) = payable(receiver).call{value: amount * 10 gwei}("");
+        (success, ) = payable(receiver).call{value: amount}("");
         require(success, "Transfer failed.");
     }
 
-    function sendFunds(uint64 value, uint64 relayerFee, bytes memory receiverBeamPubkey)
+    function sendFunds(uint value, uint relayerFee, bytes memory receiverBeamPubkey)
         public
         payable
     {
         require(receiverBeamPubkey.length == 33, "unexpected size of the receiverBeamPubkey.");
-        uint total = (value + relayerFee) * 10 gwei;
+        uint total = value + relayerFee;
         require(msg.value == total, "Invalid sent fund");
 
         emit NewLocalMessage(m_localMsgCounter++, value, relayerFee, receiverBeamPubkey);

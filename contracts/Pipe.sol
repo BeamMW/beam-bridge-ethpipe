@@ -10,7 +10,7 @@ contract Pipe {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 
-    uint32 m_localMsgCounter;
+    uint64 m_localMsgCounter;
     address m_tokenAddress;
     address m_relayerAddress;
 
@@ -18,14 +18,14 @@ contract Pipe {
 
     // LocalMessage {
     //     // header:
-    //     uint32 msgId;
-    //     uint64 relayerFee;
+    //     uint64 msgId;
+    //     uint relayerFee;
 
     //     // msg body
-    //     uint64 amount;
+    //     uint amount;
     //     bytes receiver; // beam pubKey - 33 bytes
     // }
-    event NewLocalMessage(uint64 msgId, uint64 amount, uint64 relayerFee, bytes receiver);
+    event NewLocalMessage(uint64 msgId, uint amount, uint relayerFee, bytes receiver);
 
     constructor(address tokenAddress, address relayerAddress)
     {
@@ -41,7 +41,7 @@ contract Pipe {
         // TODO: mb add event
     }
 
-    function processRemoteMessage(uint64 msgId, uint64 relayerFee, uint64 amount, address receiver)
+    function processRemoteMessage(uint64 msgId, uint relayerFee, uint amount, address receiver)
         public
     {
         require(msg.sender == m_relayerAddress, "Invalid msg sender.");
@@ -52,7 +52,7 @@ contract Pipe {
         IERC20(m_tokenAddress).safeTransfer(receiver, amount);
     }
 
-    function sendFunds(uint64 value, uint64 relayerFee, bytes memory receiverBeamPubkey)
+    function sendFunds(uint value, uint relayerFee, bytes memory receiverBeamPubkey)
         public
     {
         require(receiverBeamPubkey.length == 33, "unexpected size of the receiverBeamPubkey.");

@@ -11,7 +11,7 @@ contract('EthPipe', function(accounts) {
     it('should sendFunds properly', async() => {
         const amount = 1000000000;
         const relayerFee = 100000000;
-        const total = web3.utils.toWei(web3.utils.toBN((amount + relayerFee) * 10), 'gwei');
+        const total = amount + relayerFee;
         const receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
 
         await ethPipeContract.sendFunds(amount, relayerFee, receiverBeamPubkey, {from: accounts[0], value: total});
@@ -27,7 +27,7 @@ contract('EthPipe', function(accounts) {
         // send some coins to pipe
         const amount = 1000000000;
         const relayerFee = 100000000;
-        const total = web3.utils.toWei(web3.utils.toBN((amount + relayerFee) * 10), 'gwei');
+        const total = amount + relayerFee;
         const receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
 
         await ethPipeContract.sendFunds(amount, relayerFee, receiverBeamPubkey, {from: accounts[0], value: total});
@@ -38,7 +38,7 @@ contract('EthPipe', function(accounts) {
         const msgId = 1;
         const amountOut = 800000000;
         const relayerFeeOut = 100000000;
-        const totalOut = web3.utils.toWei(web3.utils.toBN((amountOut + relayerFeeOut) * 10), 'gwei');
+        const totalOut = amountOut + relayerFeeOut;
 
         let receiverStartBalance = await web3.eth.getBalance(receiver);
         //let startRelayerBalance = await web3.eth.getBalance(relayerAddress);
@@ -46,7 +46,9 @@ contract('EthPipe', function(accounts) {
         await ethPipeContract.processRemoteMessage(msgId, relayerFeeOut, amountOut, receiver, {from: relayerAddress, value: 0});
 
         const receiverBalance = await web3.eth.getBalance(receiver);
-        assert.equal((receiverBalance - receiverStartBalance).toString(), web3.utils.toWei(web3.utils.toBN((amountOut) * 10), 'gwei').toString(), 'incorrect balance of the receiver');
+        console.log('receiverBalance = ', receiverBalance);
+        console.log('receiverStartBalance = ', receiverStartBalance);
+        assert.equal((BigInt(receiverBalance) - BigInt(receiverStartBalance)).toString(), amountOut.toString(), 'incorrect balance of the receiver');
 
         // TODO roman.strilets need to investigate this case
         //let relayerBalance = await web3.eth.getBalance(relayerAddress);
@@ -62,7 +64,7 @@ contract('EthPipe', function(accounts) {
         const msgId = 1;
         const amount = 800000000;
         const relayerFee = 100000000;
-        const total = web3.utils.toWei(web3.utils.toBN((amount + relayerFee) * 10), 'gwei');
+        const total = amount + relayerFee;
         const receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
         
         // send some coins to pipe for the test
@@ -84,7 +86,7 @@ contract('EthPipe', function(accounts) {
         const msgId = 1;
         const amount = 800000000;
         const relayerFee = 100000000;
-        const total = web3.utils.toWei(web3.utils.toBN((amount + relayerFee) * 10), 'gwei');
+        const total = amount + relayerFee;
         const receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
         
         // send some coins to pipe for the test
