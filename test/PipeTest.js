@@ -2,11 +2,12 @@ const Pipe = artifacts.require('../contracts/Pipe.sol');
 const TestToken = artifacts.require('../contracts/TestToken.sol');
 
 contract('Pipe', function(accounts) {
+    const oneCoin = 100000000;
+    const supply = 1000 * oneCoin; // 1000 TEST coins
+    const relayerAddress = accounts[1];
+
     let testToken;
     let pipeContract;
-
-    let supply = BigInt(100000000000); // 1000 TEST coins
-    let relayerAddress = accounts[1];
 
     beforeEach(async () => {
         testToken = await TestToken.new(supply);
@@ -16,9 +17,9 @@ contract('Pipe', function(accounts) {
     })
 
     it('should sendFunds properly', async() => {
-        let amount = 1000000000;  // 10 coins
-        let relayerFee = 100000000; // 1 coin
-        let receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
+        const amount = 10 * oneCoin;  // 10 coins
+        const relayerFee = oneCoin; // 1 coin
+        const receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
 
         await testToken.approve(pipeContract.address, amount + relayerFee);
         await pipeContract.sendFunds(amount, relayerFee, receiverBeamPubkey);
@@ -31,24 +32,25 @@ contract('Pipe', function(accounts) {
     })
 
     it('should processRemoteMessage properly', async() => {
-        let receiver = accounts[2];
+        const receiver = accounts[2];
 
         let receiverStartBalance = await testToken.balanceOf(receiver);
         assert.equal(receiverStartBalance.toString(), 0, 'unexpected balance of the receiver');
 
         // send some tokens to pipe
-        let amount = 1000000000;  // 10 coins
-        let relayerFee = 100000000; // 1 coin
-        let receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
+        const amount = 10 * oneCoin;  // 10 coins
+        const relayerFee = oneCoin; // 1 coin
+        const receiverBeamPubkey = '0x1d01bcc009f66575abedad75a50e4faa22755e01e93e4ebfe02ed14d86dbed2500';
+
         await testToken.approve(pipeContract.address, amount + relayerFee);
         await pipeContract.sendFunds(amount, relayerFee, receiverBeamPubkey);
         let pipeBalance = await testToken.balanceOf(pipeContract.address);
         assert.equal(pipeBalance.toString(), amount + relayerFee, 'invalid balance of the pipe');
 
         // processRemoteMessage
-        let msgId = 1;
-        let amountOut = 800000000;  // 8 coins
-        let relayerFeeOut = 100000000; // 1 coin
+        const msgId = 1;
+        const amountOut = 8 * oneCoin;  // 8 coins
+        const relayerFeeOut = oneCoin; // 1 coin
 
         await pipeContract.processRemoteMessage(msgId, relayerFeeOut, amountOut, receiver, {from: relayerAddress, value: 0});
 
@@ -64,10 +66,10 @@ contract('Pipe', function(accounts) {
     })
 
     it('processRemoteMessage - should be called only by the relayer', async() => {
-        let receiver = accounts[2];
-        let msgId = 1;
-        let amount = 800000000;  // 8 coins
-        let relayerFee = 100000000; // 1 coin
+        const receiver = accounts[2];
+        const msgId = 1;
+        const amount = 8 * oneCoin;  // 8 coins
+        const relayerFee = oneCoin; // 1 coin
         
         // send some tokens to pipe for the test
         await testToken.transfer(pipeContract.address, amount + relayerFee);
@@ -84,10 +86,10 @@ contract('Pipe', function(accounts) {
     })
 
     it('should not processRemoteMessage twice', async() => {
-        let receiver = accounts[2];
-        let msgId = 1;
-        let amount = 800000000;  // 8 coins
-        let relayerFee = 100000000; // 1 coin
+        const receiver = accounts[2];
+        const msgId = 1;
+        const amount = 8 * oneCoin;  // 8 coins
+        const relayerFee = oneCoin; // 1 coin
         
         // send some tokens to pipe for the test
         await testToken.transfer(pipeContract.address, amount + relayerFee);
