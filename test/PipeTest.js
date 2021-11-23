@@ -2,7 +2,8 @@ const Pipe = artifacts.require('../contracts/Pipe.sol');
 const TestToken = artifacts.require('../contracts/TestToken.sol');
 
 contract('Pipe', function(accounts) {
-    const oneCoin = 100000000;
+    const decimals = 6;
+    const oneCoin = Math.pow(10, decimals);
     const supply = 1000 * oneCoin; // 1000 TEST coins
     const relayerAddress = accounts[1];
 
@@ -10,7 +11,7 @@ contract('Pipe', function(accounts) {
     let pipeContract;
 
     beforeEach(async () => {
-        testToken = await TestToken.new(supply);
+        testToken = await TestToken.new(supply, decimals, "TestToken", "USDT");
         pipeContract = await Pipe.new(testToken.address, relayerAddress);
 
         await testToken.transfer(accounts[0], supply);
