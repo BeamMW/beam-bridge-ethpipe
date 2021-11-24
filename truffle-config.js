@@ -34,7 +34,7 @@
  
    networks: {
      development: {
-       provider: () => new HDWalletProvider(process.env.MNEMONIC, 'http://localhost:8543/', 0, 5),
+       provider: () => new HDWalletProvider(process.env.MNEMONIC, 'http://localhost:8543/', 0, 6),
        network_id: '*'
      },
      kovan: {

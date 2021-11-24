@@ -12,6 +12,7 @@ async function deployPipeWithToken(deployer, options) {
 
   const pipeInstance = await Pipe.deployed();
 
+  console.log('relayer addess: ', options.relayerAddress);
   console.log(options.tokenName,' address: ', tokenInstance.address);
   console.log(options.tokenName, ' pipe address: ', pipeInstance.address);
 }
@@ -21,30 +22,31 @@ async function deployPipe(deployer, relayerAddress) {
 
   const pipeInstance = await EthPipe.deployed();
 
+  console.log('relayer addess: ', relayerAddress);
   console.log('pipe address: ', pipeInstance.address);
 }
 
 module.exports = async function (deployer, network, accounts) {
   await deployPipeWithToken(deployer, {
-    relayerAddress: accounts[0],
+    relayerAddress: accounts[2],
     decimals: 6,
     tokenName: 'USDT',
     tokenSymbol: 'USDT',
   });
 
   await deployPipeWithToken(deployer, {
-    relayerAddress: accounts[1],
+    relayerAddress: accounts[3],
     decimals: 18,
     tokenName: 'DAI',
     tokenSymbol: 'DAI',
   });
 
   await deployPipeWithToken(deployer, {
-    relayerAddress: accounts[2],
+    relayerAddress: accounts[4],
     decimals: 8,
     tokenName: 'WBTC',
     tokenSymbol: 'WBTC',
   });
 
-  await deployPipe(deployer, accounts[3]);
+  await deployPipe(deployer, accounts[5]);
 };
