@@ -33,14 +33,6 @@ contract Pipe {
         m_relayerAddress = relayerAddress;
     }
 
-    // only for test. delete it!!!
-    function setRelayer(address relayerAddress)
-        public
-    {
-        m_relayerAddress = relayerAddress;
-        // TODO: mb add event
-    }
-
     function processRemoteMessage(uint64 msgId, uint relayerFee, uint amount, address receiver)
         public
     {
