@@ -1,7 +1,7 @@
-const Pipe = artifacts.require('../contracts/Pipe.sol');
+const ERC20Pipe = artifacts.require('../contracts/ERC20Pipe.sol');
 const TestToken = artifacts.require('../contracts/TestToken.sol');
 
-contract('Pipe', function(accounts) {
+contract('ERC20Pipe', function(accounts) {
     const decimals = 6;
     const oneCoin = Math.pow(10, decimals);
     const supply = 1000 * oneCoin; // 1000 TEST coins
@@ -12,7 +12,7 @@ contract('Pipe', function(accounts) {
 
     beforeEach(async () => {
         testToken = await TestToken.new(supply, decimals, "TestToken", "USDT");
-        pipeContract = await Pipe.new(testToken.address, relayerAddress);
+        pipeContract = await ERC20Pipe.new(testToken.address, relayerAddress);
 
         await testToken.transfer(accounts[0], supply);
     })

@@ -6,7 +6,7 @@ import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
-contract Pipe {
+contract ERC20Pipe {
     using SafeERC20 for IERC20;
     using SafeMath for uint;
 

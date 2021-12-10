@@ -1,16 +1,16 @@
 const TestToken = artifacts.require("TestToken")
-const Pipe = artifacts.require("Pipe");
+const ERC20Pipe = artifacts.require("ERC20Pipe");
 const EthPipe = artifacts.require("EthPipe");
 
-async function deployPipeWithToken(deployer, options) {
+async function deployERC20PipeWithToken(deployer, options) {
   const supply = 2000000n * (10n ** BigInt(options.decimals));
   await deployer.deploy(TestToken, supply, options.decimals, options.tokenName, options.tokenSymbol);
 
   const tokenInstance = await TestToken.deployed();
 
-  await deployer.deploy(Pipe, tokenInstance.address, options.relayerAddress);
+  await deployer.deploy(ERC20Pipe, tokenInstance.address, options.relayerAddress);
 
-  const pipeInstance = await Pipe.deployed();
+  const pipeInstance = await ERC20Pipe.deployed();
 
   console.log('relayer addess: ', options.relayerAddress);
   console.log(options.tokenName,' address: ', tokenInstance.address);
@@ -27,21 +27,21 @@ async function deployPipe(deployer, relayerAddress) {
 }
 
 module.exports = async function (deployer, network, accounts) {
-  await deployPipeWithToken(deployer, {
+  await deployERC20PipeWithToken(deployer, {
     relayerAddress: accounts[2],
     decimals: 6,
     tokenName: 'USDT',
     tokenSymbol: 'USDT',
   });
 
-  await deployPipeWithToken(deployer, {
+  await deployERC20PipeWithToken(deployer, {
     relayerAddress: accounts[3],
     decimals: 18,
     tokenName: 'DAI',
     tokenSymbol: 'DAI',
   });
 
-  await deployPipeWithToken(deployer, {
+  await deployERC20PipeWithToken(deployer, {
     relayerAddress: accounts[4],
     decimals: 8,
     tokenName: 'WBTC',
