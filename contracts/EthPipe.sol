@@ -28,6 +28,9 @@ contract EthPipe {
         m_relayerAddress = relayerAddress;
     }
 
+    receive() external payable {
+    }
+
     function processRemoteMessage(uint64 msgId, uint relayerFee, uint amount, address receiver)
         public
     {

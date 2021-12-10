@@ -100,4 +100,13 @@ contract('EthPipe', function(accounts) {
         catch (error) {
         }
     });
+
+    it('should receive ETH', async() => {
+        const value = BigInt(web3.utils.toWei('1', 'ether'));
+
+        await ethPipeContract.sendTransaction({from: accounts[0], value: value.toString()});
+        let pipeBalance = await web3.eth.getBalance(ethPipeContract.address);
+
+        assert.equal(pipeBalance.toString(), value.toString(), 'invalid balance of the pipe');
+    });
 });
