@@ -34,24 +34,31 @@
  
    networks: {
      development: {
-       provider: () => new HDWalletProvider(process.env.MNEMONIC, 'http://localhost:8543/', 0, 6),
+       provider: () => new HDWalletProvider({
+         menmonic: process.env.MNEMONIC, 
+         providerOrUrl: 'http://localhost:8543/',
+         addressIndex: 0, 
+         numberOfAddresses: 6
+       }),
        network_id: '*'
      },
-     kovan: {
-       provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://kovan.infura.io/v3/0eebb147933542d5baad89258096fdd1'),
-       network_id: '42'
-     },
-     ropsten: {
-       provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://ropsten.infura.io/v3/' + process.env.INFURA_API_KEY),
-       network_id: '3'
-     },
      sepolia: {
-      provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://sepolia.infura.io/v3/' + process.env.INFURA_API_KEY),
-      network_id: '11155111'
+       provider: () => new HDWalletProvider({
+         menmonic: process.env.MNEMONIC, 
+         providerOrUrl: 'https://sepolia.infura.io/v3/' + process.env.INFURA_API_KEY,
+         addressIndex: 0, 
+         numberOfAddresses: 6
+       }),
+       network_id: '11155111'
      },
      goerli: {
-      provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://eth-goerli.g.alchemy.com/v2/' + process.env.ALCHEMY_API_KEY),
-      network_id: '5'
+       provider: () => new HDWalletProvider({
+         menmonic: process.env.MNEMONIC, 
+         providerOrUrl:'https://eth-goerli.g.alchemy.com/v2/' + process.env.ALCHEMY_API_KEY,
+         addressIndex: 0, 
+         numberOfAddresses: 6
+       }),
+       network_id: '5'
      }
    },
  
