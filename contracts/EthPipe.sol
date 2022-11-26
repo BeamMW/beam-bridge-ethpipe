@@ -32,7 +32,7 @@ contract EthPipe {
     }
 
     function processRemoteMessage(uint64 msgId, uint relayerFee, uint amount, address receiver)
-        public
+        external
     {
         require(msg.sender == m_relayerAddress, "Invalid msg sender.");
         require(!m_processedRemoteMsgs[msgId], "Msg already processed.");
@@ -46,7 +46,7 @@ contract EthPipe {
     }
 
     function sendFunds(uint value, uint relayerFee, bytes memory receiverBeamPubkey)
-        public
+        external
         payable
     {
         require(receiverBeamPubkey.length == 33, "unexpected size of the receiverBeamPubkey.");
