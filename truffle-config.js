@@ -44,6 +44,14 @@
      ropsten: {
        provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://ropsten.infura.io/v3/' + process.env.INFURA_API_KEY),
        network_id: '3'
+     },
+     sepolia: {
+      provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://sepolia.infura.io/v3/' + process.env.INFURA_API_KEY),
+      network_id: '11155111'
+     },
+     goerli: {
+      provider: () => new HDWalletProvider(process.env.MNEMONIC, 'https://eth-goerli.g.alchemy.com/v2/' + process.env.ALCHEMY_API_KEY),
+      network_id: '5'
      }
    },
  
@@ -73,5 +81,10 @@
 
   api_keys: {
     etherscan: process.env.ETHERSCAN_API_KEY
+  },
+
+  deploy_config: {
+    relayer_account_index: process.env.RELAYER_ACCOUNT_INDEX,
+    ERC20_token_address: process.env.ERC20_TOKEN_ADDRESS
   }
  }
