@@ -35,7 +35,7 @@
    networks: {
      development: {
        provider: () => new HDWalletProvider({
-         menmonic: process.env.MNEMONIC, 
+         mnemonic: process.env.MNEMONIC, 
          providerOrUrl: 'http://localhost:8543/',
          addressIndex: 0, 
          numberOfAddresses: 6
@@ -44,7 +44,7 @@
      },
      sepolia: {
        provider: () => new HDWalletProvider({
-         menmonic: process.env.MNEMONIC, 
+         mnemonic: process.env.MNEMONIC, 
          providerOrUrl: 'https://sepolia.infura.io/v3/' + process.env.INFURA_API_KEY,
          addressIndex: 0, 
          numberOfAddresses: 6
@@ -53,13 +53,22 @@
      },
      goerli: {
        provider: () => new HDWalletProvider({
-         menmonic: process.env.MNEMONIC, 
+         mnemonic: process.env.MNEMONIC, 
          providerOrUrl:'https://eth-goerli.g.alchemy.com/v2/' + process.env.ALCHEMY_API_KEY,
          addressIndex: 0, 
          numberOfAddresses: 6
        }),
        network_id: '5'
-     }
+     },
+     mainnet: {
+      provider: () => new HDWalletProvider({
+        mnemonic: process.env.MNEMONIC, 
+        providerOrUrl: 'https://eth-mainnet.g.alchemy.com/v2/' + process.env.ALCHEMY_API_KEY,
+        addressIndex: 0, 
+        numberOfAddresses: 6
+      }),
+      network_id: 1,
+    }
    },
  
    // Set default mocha options here, use special reporters etc.
