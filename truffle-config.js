@@ -84,7 +84,7 @@
        settings: { // See the solidity docs for advice about optimization and evmVersion
          optimizer: {
            enabled: true,
-           runs: 2000
+           runs: 200
          },
          evmVersion: 'petersburg'
        }
@@ -101,6 +101,7 @@
 
   deploy_config: {
     relayer_account_index: process.env.RELAYER_ACCOUNT_INDEX,
+    relayer_account_address: process.env.RELAYER_ACCOUNT_ADDRESS,
     ERC20_token_address: process.env.ERC20_TOKEN_ADDRESS
   }
  }
